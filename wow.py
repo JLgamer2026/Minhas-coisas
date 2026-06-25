@@ -34,7 +34,7 @@ while True:
     integral = integral + erro
     if dist < 100:
         andar.turn(-105)
-        andar.arc(radius=250, angle=215, wait=False)
+        andar.arc(radius=210, angle=215, wait=False)
         wait(1000)
     else: 
         if meio < 45:
