@@ -13,24 +13,11 @@ coresq = ColorSensor(Port.B)
 
 motor_esq = Motor(Port.F, positive_direction=Direction.COUNTERCLOCKWISE)
 motor_dir = Motor(Port.E)
-
+p = 10
 andar = DriveBase(motor_esq, motor_dir, 63, 133)
-andar.settings(straight_speed=150)
-
+andar.settings(straight_speed=500)
 hub.imu.reset_heading(0)
-
-bat = hub.battery.voltage()
-print(bat)
 while True:
-    # Captura o objeto de cor bruta (sem arredondamentos)
-    cor_atual = cordir.hsv()
-    
-    # Extrai os componentes individuais
-    matiz = cor_atual.h       # Hue (0 a 359)
-    saturacao = cor_atual.s   # Saturation (0 a 100)
-    brilho = cor_atual.v      # Value/Brightness (0 a 100)
-    
-    # Exibe formatado no terminal
-    print(f"H: {matiz:3d} | S: {saturacao:3d} | V: {brilho:3d}")
-    
-    wait(200) # Pequena pausa para o terminal não rolar rápido demais
+    guinada = hub.imu.heading()
+    motor_esq.run(200 - (p * guinada))
+    motor_dir.run(200 + (p * guinada))
