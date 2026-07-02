@@ -28,13 +28,7 @@ integral = 0
 erro_anterior = 0
 
 def mapeia_verde(sensor):
-    # O método .hsv() retorna um objeto com atributos: h (matiz), s (saturação), v (valor/brilho)
     dados = sensor.hsv()
-    
-    # Validação do Verde: 
-    # Matiz geralmente entre 110 e 150 (ajuste se necessário)
-    # Saturação alta (linhas pretas/brancas têm saturação muito baixa, perto de 0)
-    # Brilho intermediário (preto é muito baixo, branco é muito alto)
     if (100 <= dados.h <= 160) and (dados.s > 45) and (20 <= dados.v <= 70):
         return True
     return False
@@ -48,6 +42,7 @@ while True:
     esq = coresq.color()
     dir = cordir.color()
     meio = cormeio.reflection()
+    
     if dist < 100:
         motor_esq.stop()
         motor_dir.stop()
@@ -61,6 +56,7 @@ while True:
             wait(10)
         integral = 0
         erro_anterior = 0
+        
     else:
         if esq_e_verde and dir_e_verde:
             andar.turn(-210)
@@ -71,23 +67,45 @@ while True:
         elif dir_e_verde:
             andar.turn(105)
             andar.straight(100)
+            
         else:
-            if esq == Color.WHITE and meio > 97 and dir == Color.WHITE:
-                motor_esq.run(vel)
-                motor_dir.run(vel)
-            else:
+            e_preto = 1 if coresq.reflection() < 35 else 0
+            c_preto = 1 if cormeio.reflection() < 35 else 0
+            d_preto = 1 if cordir.reflection() < 35 else 0
+            
+            estado = (e_preto, c_preto, d_preto)
+            
+            if estado == (1, 1, 1) or estado == (1, 0, 1):
+                andar.straight(30) 
+            
+            elif estado == (1, 1, 0) or estado == (1, 0, 0):
+                motor_esq.run(-80)          
+                motor_dir.run(vel + 100)    
+                
+            elif estado == (0, 1, 1) or estado == (0, 0, 1):
+                motor_esq.run(vel + 100)    
+                motor_dir.run(-80)          
+                
+            elif estado == (0, 1, 0):
                 erro = reflection - meio
                 integral = integral + erro
                 if integral > 100: integral = 100
                 if integral < -100: integral = -100
+                
                 derivada = erro - erro_anterior
                 correcao = (kp * erro) + (ki * integral) + (kd * derivada)
+                
                 if correcao > 200: correcao = 200
                 if correcao < -200: correcao = -200
-                if dir != Color.WHITE: correcao = 500
-                if esq != Color.WHITE: correcao = -300
+                
                 motor_esq.run(vel + correcao)
                 motor_dir.run(vel - correcao) 
                 erro_anterior = erro
+                
+            # (0, 0, 0) se for brnco
+            else:
+                motor_esq.run(vel)
+                motor_dir.run(vel)
+                
     wait(10)
     print("esquerda: {}, meio: {}, direita: {}, distância: {}".format(esq, meio, dir, dist))
