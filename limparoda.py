@@ -22,15 +22,5 @@ hub.imu.reset_heading(0)
 bat = hub.battery.voltage()
 print(bat)
 while True:
-    # Captura o objeto de cor bruta (sem arredondamentos)
-    cor_atual = cordir.hsv()
-    
-    # Extrai os componentes individuais
-    matiz = cor_atual.h       # Hue (0 a 359)
-    saturacao = cor_atual.s   # Saturation (0 a 100)
-    brilho = cor_atual.v      # Value/Brightness (0 a 100)
-    
-    # Exibe formatado no terminal
-    print(f"H: {matiz:3d} | S: {saturacao:3d} | V: {brilho:3d}")
-    
-    wait(200) # Pequena pausa para o terminal não rolar rápido demais
+    motor_esq.run(1000)
+    motor_dir.run(1000)

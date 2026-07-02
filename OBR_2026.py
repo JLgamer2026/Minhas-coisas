@@ -7,9 +7,9 @@ from pybricks.robotics import DriveBase
 hub = PrimeHub(broadcast_channel=1, observe_channels=[2])
 
 ultra = UltrasonicSensor(Port.C)
-cordir = ColorSensor(Port.D)
+cordir = ColorSensor(Port.B)
 cormeio = ColorSensor(Port.A)
-coresq = ColorSensor(Port.B)
+coresq = ColorSensor(Port.D)
 
 motor_esq = Motor(Port.F, positive_direction=Direction.COUNTERCLOCKWISE)
 motor_dir = Motor(Port.E)
@@ -34,53 +34,34 @@ while True:
     esq = coresq.color()
     dir = cordir.color()
     meio = cormeio.reflection()
-    
-    # --- 1. CONDICIONAL DE OBSTÁCULO (OBR) ---
     if dist < 100:
-        # Para os motores individuais antes de usar o DriveBase
         motor_esq.stop()
         motor_dir.stop()
-        
-        # Desvio do obstáculo usando arco síncrono ou controlado
         andar.turn(-105)
-        
-        # Inicia o arco ao redor do obstáculo
         andar.arc(radius=210, angle=215, wait=False)
         wait(1000)
-        # Monitora os sensores enquanto faz a curva para voltar à linha com segurança
         while not andar.done():
-            # Se o sensor do meio achar a linha preta antes do fim do arco, interrompe
             if cormeio.reflection() < 45:
                 andar.stop()
                 break
             wait(10)
-            
-        # Reseta as variáveis do PID para evitar pulos bruscos ao voltar para a linha
         integral = 0
         erro_anterior = 0
-
-    # --- 2. SEGUIDOR DE LINHA PID CONTÍNUO ---
     else:
         if esq == Color.GREEN and dir == Color.GREEN:
-            # Meia volta (Beco sem saída)
-            motor_esq.stop()
-            motor_dir.stop()
-            andar.turn(180)
-            andar.straight(50)
+            andar.turn(-210)
+            andar.straight(100)
         elif esq == Color.GREEN:
-            # Noventa graus para a esquerda
-            motor_esq.stop()
-            motor_dir.stop()
-            andar.turn(-90)
-            andar.straight(50)
+            andar.turn(-105)
+            andar.straight(100)
         elif dir == Color.GREEN:
-            # Noventa graus para a direita
-            motor_esq.stop()
-            motor_dir.stop()
-            andar.turn(90)
-            andar.straight(50)
+            andar.turn(105)
+            andar.straight(100)
         else:
-            if meio < 90:
+            if esq == Color.WHITE and meio > 97 and dir == Color.WHITE:
+                motor_esq.run(vel)
+                motor_dir.run(vel)
+            else:
                 erro = reflection - meio
                 integral = integral + erro
                 if integral > 100: integral = 100
@@ -89,21 +70,10 @@ while True:
                 correcao = (kp * erro) + (ki * integral) + (kd * derivada)
                 if correcao > 200: correcao = 200
                 if correcao < -200: correcao = -200
+                if dir != Color.WHITE: correcao = 500
+                if esq != Color.WHITE: correcao = -300
                 motor_esq.run(vel + correcao)
                 motor_dir.run(vel - correcao) 
                 erro_anterior = erro
-            else:
-                if esq != Color.WHITE:
-                    motor_esq.run(-75)
-                    motor_dir.run(0)
-                elif dir != Color.WHITE:
-                    motor_esq.run(0)
-                    motor_dir.run(-75)
-                else:
-                    if esq == Color.WHITE and meio > 90 and dir == Color.WHITE:
-                        motor_esq.run(vel)
-                        motor_dir.run(vel)
-        # --- 3. VERIFICAÇÃO DE QUADRADOS VERDES (INTERSEÇÃO OBR) ---
-        # Deixamos os sensores laterais focados em achar o verde ou correções extremas
     wait(10)
     print("esquerda: {}, meio: {}, direita: {}, distância: {}".format(esq, meio, dir, dist))
