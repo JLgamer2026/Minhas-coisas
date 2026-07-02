@@ -27,9 +27,23 @@ kd = 25
 integral = 0
 erro_anterior = 0
 
+def mapeia_verde(sensor):
+    # O método .hsv() retorna um objeto com atributos: h (matiz), s (saturação), v (valor/brilho)
+    dados = sensor.hsv()
+    
+    # Validação do Verde: 
+    # Matiz geralmente entre 110 e 150 (ajuste se necessário)
+    # Saturação alta (linhas pretas/brancas têm saturação muito baixa, perto de 0)
+    # Brilho intermediário (preto é muito baixo, branco é muito alto)
+    if (100 <= dados.h <= 160) and (dados.s > 45) and (20 <= dados.v <= 70):
+        return True
+    return False
+
 hub.light.on(Color.BLUE)
 
 while True:
+    esq_e_verde = mapeia_verde(coresq)
+    dir_e_verde = mapeia_verde(cordir)
     dist = ultra.distance()
     esq = coresq.color()
     dir = cordir.color()
@@ -48,13 +62,13 @@ while True:
         integral = 0
         erro_anterior = 0
     else:
-        if esq == Color.GREEN and dir == Color.GREEN:
+        if esq_e_verde and dir_e_verde:
             andar.turn(-210)
             andar.straight(100)
-        elif esq == Color.GREEN:
+        elif esq_e_verde:
             andar.turn(-105)
             andar.straight(100)
-        elif dir == Color.GREEN:
+        elif dir_e_verde:
             andar.turn(105)
             andar.straight(100)
         else:
