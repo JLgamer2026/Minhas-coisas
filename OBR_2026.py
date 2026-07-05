@@ -59,16 +59,38 @@ while True:
         erro_anterior = 0
     else:
         if esq_e_verde and dir_e_verde or esq == Color.GREEN and dir == Color.GREEN:
-            andar.turn(-220)
-            andar.straight(100)
+            andar.turn(-200)
+            andar.straight(50)
         elif esq_e_verde or esq == Color.GREEN:
-            andar.straight(50)
-            andar.turn(-110)
-            andar.straight(25)
+            while esq != Color.WHITE:
+                motor_esq.run(-50)
+                motor_dir.run(0)
+                esq = coresq.color()
+            andar.straight(15)
+            dir = cordir.color()
+            wait(100)
+            if dir == Color.GREEN:
+                andar.turn(-200)
+                andar.straight(50)
+            else:
+                andar.straight(50)
+                andar.turn(-90)
+                andar.straight(50)
         elif dir_e_verde or dir == Color.GREEN:
-            andar.straight(50)
-            andar.turn(110)
-            andar.straight(25)
+            while dir != Color.WHITE:
+                motor_esq.run(0)
+                motor_dir.run(-50)
+                dir = cordir.color()
+            andar.straight(15)
+            esq = coresq.color()
+            wait(100)
+            if esq == Color.GREEN:
+                andar.turn(-200)
+                andar.straight(50)
+            else:
+                andar.straight(50)
+                andar.turn(90)
+                andar.straight(50)
         else:
             if esq == Color.WHITE and meio > 90 and dir == Color.WHITE:
                 motor_esq.run(vel)
@@ -85,10 +107,12 @@ while True:
                 correcao = (kp * erro) + (ki * integral) + (kd * derivada)
                 if correcao > 200: correcao = 200
                 if correcao < -200: correcao = -200
-                if dir != Color.WHITE: correcao = 400
-                if esq != Color.WHITE: correcao = -300
+                if dir == Color.BLACK and meio > 20:
+                    correcao = 400
+                if esq == Color.BLACK and meio > 20:
+                    correcao = -400
                 motor_esq.run(vel + correcao)
                 motor_dir.run(vel - correcao) 
                 erro_anterior = erro
-    wait(10)
+    wait(20)
     print("esquerda: {}, meio: {}, direita: {}, distância: {}".format(esq, meio, dir, dist))
