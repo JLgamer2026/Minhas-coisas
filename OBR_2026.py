@@ -1,7 +1,7 @@
 from pybricks.hubs import PrimeHub
 from pybricks.pupdevices import Motor, UltrasonicSensor, ColorSensor
 from pybricks.parameters import Color, Port, Direction
-from pybricks.tools import wait
+from pybricks.tools import wait, StopWatch
 from pybricks.robotics import DriveBase
 
 hub = PrimeHub(broadcast_channel=1, observe_channels=[2])
@@ -106,11 +106,23 @@ while True:
                 derivada = erro - erro_anterior
                 correcao = (kp * erro) + (ki * integral) + (kd * derivada)
                 if correcao > 200: correcao = 200
-                if correcao < -200: correcao = -200
-                if dir == Color.BLACK and meio > 20:
-                    correcao = 400
-                if esq == Color.BLACK and meio > 20:
-                    correcao = -400
+                elif correcao < -200: correcao = -200
+                if dir != Color.WHITE and dir != Color.GREEN and meio > 15:
+                    andar.straight(20)
+                    meio = cormeio.reflection()
+                    if meio > 60:
+                        while meio > 60:
+                            motor_esq.run(150)
+                            motor_dir.run(-150)
+                            meio = cormeio.reflection()
+                elif esq != Color.WHITE and esq != Color.GREEN and meio > 15:
+                    andar.straight(20)
+                    meio = cormeio.reflection()
+                    if meio > 60:
+                        while meio > 60:
+                            motor_esq.run(-150)
+                            motor_dir.run(150)
+                            meio = cormeio.reflection()
                 motor_esq.run(vel + correcao)
                 motor_dir.run(vel - correcao) 
                 erro_anterior = erro
